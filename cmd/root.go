@@ -1,5 +1,5 @@
 /*
-Copyright © 2025 NAME HERE <EMAIL ADDRESS>
+Copyright © 2025 Avinash Chowdhury <avinashx36@gmail.com>
 */
 package cmd
 
@@ -9,6 +9,8 @@ import (
 
 	"github.com/anacrolix/torrent"
 	"github.com/spf13/cobra"
+
+	cc "github.com/ivanpirog/coloredcobra"
 )
 
 var torrentLink string
@@ -30,7 +32,17 @@ var rootCmd = &cobra.Command{
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
+
 func Execute() {
+	cc.Init(&cc.Config{
+		RootCmd:  rootCmd,
+		Headings: cc.HiGreen + cc.Bold + cc.Underline,
+		Commands: cc.HiYellow + cc.Bold,
+		Example:  cc.Italic,
+		ExecName: cc.Bold,
+		Flags:    cc.Bold,
+	})
+
 	err := rootCmd.Execute()
 	if err != nil {
 		os.Exit(1)
@@ -62,11 +74,22 @@ func downloadTorrent(link string) {
 	t, err := client.AddMagnet(link)
 	if err != nil {
 		fmt.Printf("Error adding torrent: %v\n", err)
-		os.Exit(1)
+
 	}
 
 	fmt.Println("Fetching Metadata ...")
 	<-t.GotInfo()
+
+	//SEE the metadata
+	info := t.Info()
+	fmt.Printf("Torrent Name: %s\n", info.Name)
+	fmt.Printf("Total Files: %d\n", len(info.Files))
+	fmt.Printf("Total Size: %d bytes\n", info.TotalLength())
+
+	fmt.Println("Files:")
+	for _, file := range info.Files {
+		fmt.Printf("- %s (%d bytes)\n", file.Path, file.Length)
+	}
 
 	t.DownloadAll()
 
